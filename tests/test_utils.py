@@ -230,6 +230,26 @@ def test_read_expected_patterns_with_empty_lines():
         os.unlink(path)
 
 
+def test_read_expected_patterns_with_empty_lines_and_comments():
+    """Test reading expected patterns from a file with empty lines and comments."""
+    # Create a temporary file with patterns, empty lines, and comments
+    fd, path = tempfile.mkstemp(suffix=".txt")
+    try:
+        with os.fdopen(fd, "w") as f:
+            f.write("Pattern 1\n\n# This is a comment\nPattern 2\n\n# Another comment\nPattern 3\n")
+        
+        # Test reading the patterns
+        result = utils.read_expected_patterns(path)
+        assert len(result) == 3
+        assert "Pattern 1" in result
+        assert "Pattern 2" in result
+        assert "Pattern 3" in result
+        assert "# This is a comment" not in result
+        assert "# Another comment" not in result
+    finally:
+        os.unlink(path)
+
+
 def test_read_expected_patterns_empty_file():
     """Test reading from an empty file."""
     # Create an empty temporary file
