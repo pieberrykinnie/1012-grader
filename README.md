@@ -1,4 +1,4 @@
-# Python Grader Tool (v0.2.0)
+# Python Grader Tool
 
 A lightweight command-line tool designed to assist in grading Python programming assignments for COMP 1012: Computer Programming for Scientists and Engineers.
 
