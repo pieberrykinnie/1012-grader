@@ -34,13 +34,13 @@ Before using the tool, you need to install it on your system.
 The tool provides a command-line interface to grade Python scripts. Here's the basic syntax:
 
 ```bash
-1012-grader --file SCRIPT_PATH --input INPUT_DATA_OR_FILE --expected PATTERN1 [--expected PATTERN2 ...]
+1012-grader --file SCRIPT_PATH --input INPUT_DATA_OR_FILE --expected-file PATTERNS_FILE
 ```
 
 Or alternatively:
 
 ```bash
-python -m grader.main --file SCRIPT_PATH --input INPUT_DATA_OR_FILE --expected PATTERN1 [--expected PATTERN2 ...]
+python -m grader.main --file SCRIPT_PATH --input INPUT_DATA_OR_FILE --expected-file PATTERNS_FILE
 ```
 
 ### Required Arguments
@@ -49,19 +49,41 @@ python -m grader.main --file SCRIPT_PATH --input INPUT_DATA_OR_FILE --expected P
 - `--input` or `-i`: Input data for the script. This can be:
   - A direct string (e.g., `--input "John Doe"`)
   - A path to a file containing input data (the tool will detect if the path exists)
-- `--expected` or `-e`: Expected output snippets or regex patterns. You can specify this argument multiple times for different patterns.
+- `--expected-file`: Path to a file containing expected output patterns, with one pattern per line.
 
 ### Optional Arguments
 
 - `--timeout` or `-t`: Timeout in seconds for script execution (default: 5).
 - `--output-file` or `-o`: Path to save the grading report as a file.
 
+## Expected Patterns File Format
+
+The expected patterns file should contain one pattern per line. Empty lines and lines starting with `#` (comments) are ignored. For example:
+
+```
+# This is a comment
+Hello, .+!
+Result: \d+
+
+# Another comment
+Total: \d+\.\d{2}
+```
+
+Each non-comment line is treated as a separate pattern to search for in the script's output.
+
 ## Examples
 
 ### Example 1: Basic Usage
 
+Create a file `patterns.txt` with the following content:
+```
+Hello, John Doe!
+Result: [0-9]+
+```
+
+Then run:
 ```bash
-1012-grader --file student_script.py --input "John Doe" --expected "Hello, John Doe!" --expected "Result: [0-9]+"
+1012-grader --file student_script.py --input "John Doe" --expected-file patterns.txt
 ```
 
 This runs `student_script.py` with the input "John Doe" and checks if the output contains:
@@ -76,15 +98,21 @@ John Doe
 42
 ```
 
+Create a file `patterns.txt` with the patterns:
+```
+Hello, John Doe!
+Result: 42
+```
+
 Then run:
 ```bash
-1012-grader --file student_script.py --input input.txt --expected "Hello, John Doe!" --expected "Result: 42"
+1012-grader --file student_script.py --input input.txt --expected-file patterns.txt
 ```
 
 ### Example 3: Saving the Report
 
 ```bash
-1012-grader --file student_script.py --input "John Doe" --expected "Hello, John Doe!" --output-file report.txt
+1012-grader --file student_script.py --input "John Doe" --expected-file patterns.txt --output-file report.txt
 ```
 
 This runs the grader and saves the report to `report.txt`.
@@ -123,11 +151,14 @@ A concise summary of the output validation and code analysis results.
 
 4. **Saving Reports**: Save reports to files for record-keeping and to share feedback with students.
 
+5. **Using Comments**: Add comments in your patterns file to document what each pattern is checking for, making the file more maintainable.
+
 ## Troubleshooting
 
 If you encounter any issues with the tool, try the following:
 
 1. Ensure your Python version is 3.6 or higher.
 2. Check that the student's script exists and is readable.
-3. Verify that input files are correctly formatted.
-4. For regex pattern issues, test your patterns separately with a tool like regex101.com. 
+3. Verify that input files and expected pattern files are correctly formatted.
+4. For regex pattern issues, test your patterns separately with a tool like regex101.com.
+5. Make sure your patterns file contains at least one non-empty, non-comment line. 
