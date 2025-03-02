@@ -109,13 +109,13 @@ many_words_line = "This is a very long line with many many many many many many m
     try:
         with os.fdopen(fd, "w") as f:
             f.write(script_content)
-        
+
         # Analyze the code
         analysis = utils.analyze_code(path)
 
         # Verify analysis results
         assert len(analysis.line_issues) > 0
-        
+
         # Verify multiple returns detection
         multiple_returns_issues = [
             issue
@@ -124,7 +124,7 @@ many_words_line = "This is a very long line with many many many many many many m
         ]
         assert len(multiple_returns_issues) == 1
         assert "multiple_returns_function" in multiple_returns_issues[0].line_content
-        
+
         # Verify banned pattern detection
         banned_pattern_issues = [
             issue
@@ -132,7 +132,7 @@ many_words_line = "This is a very long line with many many many many many many m
             if issue.issue_type == "BANNED_PATTERN"
         ]
         assert len(banned_pattern_issues) >= 2  # break and while True
-        
+
         # Verify comment count
         assert analysis.comment_count >= 1
     finally:
@@ -189,3 +189,54 @@ def test_generate_report():
     assert "Use of 'while True'" in report
     assert "Output Validation: 1/2 checks passed" in report
     assert "Code Analysis: 1 issues found" in report
+
+
+def test_read_expected_patterns():
+    """Test reading expected patterns from a file."""
+    patterns = ["Pattern 1", "Pattern 2", "Pattern 3"]
+
+    # Create a temporary file with patterns
+    fd, path = tempfile.mkstemp(suffix=".txt")
+    try:
+        with os.fdopen(fd, "w") as f:
+            for pattern in patterns:
+                f.write(f"{pattern}\n")
+
+        # Test reading the patterns
+        result = utils.read_expected_patterns(path)
+        assert len(result) == 3
+        assert "Pattern 1" in result
+        assert "Pattern 2" in result
+        assert "Pattern 3" in result
+    finally:
+        os.unlink(path)
+
+
+def test_read_expected_patterns_with_empty_lines():
+    """Test reading expected patterns from a file with empty lines."""
+    # Create a temporary file with patterns and empty lines
+    fd, path = tempfile.mkstemp(suffix=".txt")
+    try:
+        with os.fdopen(fd, "w") as f:
+            f.write("Pattern 1\n\n\nPattern 2\n\nPattern 3\n")
+
+        # Test reading the patterns
+        result = utils.read_expected_patterns(path)
+        assert len(result) == 3
+        assert "Pattern 1" in result
+        assert "Pattern 2" in result
+        assert "Pattern 3" in result
+    finally:
+        os.unlink(path)
+
+
+def test_read_expected_patterns_empty_file():
+    """Test reading from an empty file."""
+    # Create an empty temporary file
+    fd, path = tempfile.mkstemp(suffix=".txt")
+    try:
+        # Test reading from empty file
+        result = utils.read_expected_patterns(path)
+        assert len(result) == 0
+    finally:
+        os.unlink(path)

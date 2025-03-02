@@ -9,7 +9,7 @@ and code analysis.
 
 import os
 import sys
-from typing import List, Optional
+from typing import Optional
 
 import click
 
@@ -32,11 +32,10 @@ from . import utils
     help="Input data for the script. Can be a file path or inline string.",
 )
 @click.option(
-    "--expected",
-    "-e",
+    "--expected-file",
     required=True,
-    multiple=True,
-    help="Expected output snippets or regex patterns. Can be specified multiple times.",
+    type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True),
+    help="Path to a file containing expected output patterns, one per line.",
 )
 @click.option(
     "--timeout",
@@ -52,7 +51,7 @@ from . import utils
     help="Optional file path to save the grading report.",
 )
 def main(
-    file: str, input: str, expected: List[str], timeout: int, output_file: Optional[str]
+    file: str, input: str, expected_file: str, timeout: int, output_file: Optional[str]
 ) -> None:
     """
     Execute the grading process for a student's Python script.
@@ -66,8 +65,20 @@ def main(
         click.echo(f"Error: The file '{file}' does not exist or is not accessible.")
         sys.exit(1)
 
-    if not expected:
-        click.echo("Error: At least one expected output snippet must be provided.")
+    if not os.path.isfile(expected_file):
+        click.echo(
+            f"Error: The expected output file '{expected_file}' does not exist or is not accessible."
+        )
+        sys.exit(1)
+
+    # Read expected patterns from file
+    try:
+        expected_patterns = utils.read_expected_patterns(expected_file)
+        if not expected_patterns:
+            click.echo(f"Error: The expected output file '{expected_file}' is empty.")
+            sys.exit(1)
+    except Exception as e:
+        click.echo(f"Error reading expected output file: {e}")
         sys.exit(1)
 
     input_data = input
@@ -85,7 +96,9 @@ def main(
     execution_result = utils.execute_script(file, input_data, timeout)
 
     # Validate output against expected snippets
-    output_validation = utils.validate_output(execution_result.stdout, expected)
+    output_validation = utils.validate_output(
+        execution_result.stdout, expected_patterns
+    )
 
     # Analyze the code
     code_analysis = utils.analyze_code(file)

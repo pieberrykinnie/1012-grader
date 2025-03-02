@@ -354,3 +354,29 @@ def generate_report(
     report_lines.append(f"- Code Analysis: {issue_count} issues found")
 
     return "\n".join(report_lines)
+
+
+def read_expected_patterns(file_path: str) -> List[str]:
+    """
+    Read expected output patterns from a file.
+
+    Args:
+        file_path: Path to the file containing output patterns
+
+    Returns:
+        List of strings, one for each non-empty line in the file
+
+    Raises:
+        FileNotFoundError: If the file doesn't exist
+        PermissionError: If the file can't be read
+        IOError: For other file-related errors
+    """
+    patterns = []
+
+    with open(file_path, "r") as file:
+        for line in file:
+            line = line.strip()
+            if line:  # Skip empty lines
+                patterns.append(line)
+
+    return patterns
