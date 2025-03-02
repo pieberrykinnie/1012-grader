@@ -1,7 +1,7 @@
 """
 Utility functions for the Python Grader Tool.
 
-This module contains functions for executing student scripts, validating output,
+This module contains functions for executing scripts, validating output,
 analyzing code, and generating reports.
 """
 
@@ -11,7 +11,7 @@ import re
 import subprocess
 import sys
 from dataclasses import dataclass
-from typing import Any, Dict, List, NamedTuple, Optional, Tuple
+from typing import List, Optional
 
 
 @dataclass
@@ -201,7 +201,9 @@ def analyze_code(script_path: str) -> CodeAnalysis:
                         line_number=line_number,
                         issue_type="LONG_LINE",
                         line_content=line.strip(),
-                        description=f"Line exceeds 100 words (contains {word_count} words)",
+                        description=(
+                            f"Line exceeds 100 words " f"(contains {word_count} words)"
+                        ),
                     )
                 )
 
@@ -237,14 +239,18 @@ def analyze_code(script_path: str) -> CodeAnalysis:
                         line_number=0,  # AST doesn't provide line numbers easily
                         issue_type="MULTIPLE_RETURNS",
                         line_content=f"Function: {func_name}",
-                        description=f"Function contains {return_count} return statements",
+                        description=(
+                            f"Function contains {return_count} return statements"
+                        ),
                     )
                 )
 
         except SyntaxError as e:
             line_issues.append(
                 LineIssue(
-                    line_number=e.lineno if hasattr(e, "lineno") else 0,
+                    line_number=(
+                        e.lineno if hasattr(e, "lineno") and e.lineno is not None else 0
+                    ),
                     issue_type="SYNTAX_ERROR",
                     line_content="",
                     description=f"Syntax error: {str(e)}",
@@ -335,7 +341,9 @@ def generate_report(
     # Summary
     report_lines.append("\nSummary:")
     report_lines.append(
-        f"- Output Validation: {len(output_validation.found_patterns)}/{output_validation.total_patterns} checks passed"
+        f"- Output Validation: "
+        f"{len(output_validation.found_patterns)}/{output_validation.total_patterns} "
+        f"checks passed"
     )
 
     issue_count = (

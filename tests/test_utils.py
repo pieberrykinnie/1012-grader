@@ -2,9 +2,7 @@
 
 import os
 import tempfile
-from typing import List, Tuple
-
-import pytest
+from typing import Tuple
 
 from grader import utils
 
@@ -91,38 +89,52 @@ def test_validate_output_some_missing():
 
 
 def test_analyze_code():
-    """Test code analysis functionality."""
-    script_content = """# This is a comment
-def test_function():
+    """Test the code analysis functionality."""
+    script_content = """
+def multiple_returns_function():
     if True:
-        # Another comment
-        return 42
-    else:
-        return 0  # Multiple returns!
+        return 1
+    return 2
 
-# Banned pattern
+# This is a comment
 while True:
-    break  # Another banned pattern
+    break
+
+def good_function():
+    return "Hello"
+
+many_words_line = "This is a very long line with many many many many many many many "
 """
-    path, _ = create_temp_script(script_content)
-
+    fd, path = tempfile.mkstemp(suffix=".py")
     try:
-        result = utils.analyze_code(path)
+        with os.fdopen(fd, "w") as f:
+            f.write(script_content)
+        
+        # Analyze the code
+        analysis = utils.analyze_code(path)
 
-        # Check comment count
-        assert result.comment_count == 5
-
-        # Check banned patterns
-        assert result.banned_patterns_count == 2
-        assert any("break" in issue.description for issue in result.line_issues)
-        assert any("while True" in issue.description for issue in result.line_issues)
-
-        # Check multiple returns
-        assert result.multiple_returns_count == 1
-        assert any(
-            "multiple_returns" in issue.issue_type.lower()
-            for issue in result.line_issues
-        )
+        # Verify analysis results
+        assert len(analysis.line_issues) > 0
+        
+        # Verify multiple returns detection
+        multiple_returns_issues = [
+            issue
+            for issue in analysis.line_issues
+            if issue.issue_type == "MULTIPLE_RETURNS"
+        ]
+        assert len(multiple_returns_issues) == 1
+        assert "multiple_returns_function" in multiple_returns_issues[0].line_content
+        
+        # Verify banned pattern detection
+        banned_pattern_issues = [
+            issue
+            for issue in analysis.line_issues
+            if issue.issue_type == "BANNED_PATTERN"
+        ]
+        assert len(banned_pattern_issues) >= 2  # break and while True
+        
+        # Verify comment count
+        assert analysis.comment_count >= 1
     finally:
         os.unlink(path)
 

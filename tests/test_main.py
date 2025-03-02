@@ -1,9 +1,8 @@
-"""Tests for the main CLI interface of the grader tool."""
+"""Tests for the main module of the Python Grader Tool."""
 
 import os
 import tempfile
 
-import pytest
 from click.testing import CliRunner
 
 from grader.main import main
