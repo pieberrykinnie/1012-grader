@@ -1,0 +1,17 @@
+# Simple string pattern
+Hello, World!
+
+# Regex pattern with wildcard
+Hello, .+!
+
+# Regex pattern matching numbers
+Result: \d+
+
+# Empty lines are ignored (like this one above)
+
+# Pattern matching specific output formats
+Total: \d+\.\d{2}
+
+# Case-sensitive patterns
+ERROR:
+Warning: 
